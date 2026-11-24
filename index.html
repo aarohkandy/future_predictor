@@ -2,30 +2,238 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Future Predictor</title>
 <meta name="description" content="Ask anything. Get one word.">
+<meta property="og:title" content="Future Predictor">
+<meta property="og:description" content="Ask anything. Get one word.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#e7e5e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23e7e5e4'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%231c1917'/%3E%3C/svg%3E">
 <style>
-  body { margin: 0; padding: 12vh 6vw; background: #e7e5e4; color: #1c1917;
-         font: 400 1.5rem/1.3 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
-  input { font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid #a8a29e;
-          width: 100%; padding: .4em 0; outline: none; }
-  output { display: block; margin-top: 8vh; font-weight: 600; font-size: 22vw; letter-spacing: -.045em; line-height: .9; }
+  :root {
+    color-scheme: light dark;
+    --page: #e7e5e4;
+    --ink: #1c1917;
+    --muted: #57534e;
+    --hairline: #78716c;
+    --pad: clamp(1.25rem, 6vw, 6rem);
+    --small: 0.9375rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #1c1917;
+      --ink: #e7e5e4;
+      --muted: #a8a29e;
+      --hairline: #78716c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    background: var(--page);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-kerning: normal;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    background: var(--page);
+    padding:
+      max(clamp(1.25rem, 3.5vw, 2.5rem), env(safe-area-inset-top))
+      max(var(--pad), env(safe-area-inset-right))
+      max(clamp(1.25rem, 3.5vw, 2.5rem), env(safe-area-inset-bottom))
+      max(var(--pad), env(safe-area-inset-left));
+  }
+
+  header, footer {
+    font-size: var(--small);
+    line-height: 1.4;
+  }
+  footer { color: var(--muted); }
+  p { margin: 0; }
+
+  main { padding: clamp(3.5rem, 15svh, 10rem) 0 2rem; }
+
+  form {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: calc(0.5rem + 1px);
+  }
+  form:focus-within {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.5rem;
+  }
+
+  input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: clamp(1.5rem, 1rem + 2.2vw, 2.5rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input::placeholder { color: var(--muted); opacity: 1; }
+
+  button {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--small);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  form:has(input:placeholder-shown) button { color: var(--muted); cursor: default; }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+  .slot {
+    container-type: inline-size;
+    margin-top: clamp(2.5rem, 9svh, 5.5rem);
+  }
+
+  #asked {
+    max-width: 40ch;
+    color: var(--muted);
+    font-size: var(--small);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  #answer {
+    --n: 3;
+    margin-top: 1rem;
+    margin-inline-start: -0.06em;
+    padding-bottom: 0.15em; /* room for descenders under the tight line-height */
+    font-size: min(clamp(6rem, 36vw, 19rem), 36svh, calc(100cqi / (var(--n) * 0.58)));
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+    white-space: nowrap;
+  }
+  #answer:empty:not([data-thinking]) { height: 0; margin: 0; padding: 0; overflow: hidden; }
+  #answer[data-thinking]::before {
+    content: ".";
+    content: "." / "";
+    animation: pulse 1.1s ease-in-out infinite alternate;
+  }
+  @keyframes pulse { to { opacity: 0.2; } }
+
+  .vh {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #answer[data-thinking]::before { animation: none; }
+  }
 </style>
 </head>
 <body>
-<form>
-  <input name="q" placeholder="Ask anything." aria-label="Your question" maxlength="200" autocomplete="off" autofocus>
-</form>
-<output aria-live="polite"></output>
-<script>
-  const words = ['Yes', 'No', 'Maybe', 'Yeah', 'Nope', 'Never', 'Obviously', 'Doubtful', 'Probably', 'Funny'];
-  document.querySelector('form').onsubmit = e => {
+<header>Future Predictor</header>
+<main>
+  <form id="ask" autocomplete="off">
+    <label class="vh" for="q">Your question</label>
+    <input id="q" name="q" type="text" maxlength="200" autocomplete="off" enterkeyhint="go" spellcheck="false" placeholder="Ask anything.">
+    <button type="submit">Ask</button>
+  </form>
+  <div class="slot">
+    <p id="asked"></p>
+    <p id="answer" aria-live="polite" aria-atomic="true"></p>
+  </div>
+</main>
+<footer>All predictions are final.</footer>
+<script type="module">
+  import { POOLS, guessKind, pick } from './oracle.js';
+
+  const form = document.getElementById('ask');
+  const input = document.getElementById('q');
+  const asked = document.getElementById('asked');
+  const answer = document.getElementById('answer');
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
+  let seq = 0;
+  let lastWord;
+
+  const finePointer = matchMedia('(pointer: fine)').matches;
+  if (finePointer) input.focus();
+
+  let inflight;
+  async function kindOf(q) {
+    inflight?.abort();
+    const ctl = inflight = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 1200);
+    try {
+      const res = await fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ q }),
+        signal: ctl.signal,
+      });
+      if (res.ok) {
+        const { kind } = await res.json();
+        if (typeof kind === 'string' && Object.prototype.hasOwnProperty.call(POOLS, kind)) return kind;
+      }
+    } catch {} finally {
+      clearTimeout(timer);
+    }
+    return guessKind(q);
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!e.target.q.value.trim()) return;
-    document.querySelector('output').textContent = words[Math.floor(Math.random() * words.length)] + '.';
-    e.target.q.value = '';
-  };
+    const q = input.value.trim();
+    if (!q) return;
+    const id = ++seq;
+
+    input.value = '';
+    if (!finePointer) input.blur(); // drop the phone keyboard so it can't cover the answer
+    asked.textContent = q;
+    answer.textContent = '';
+    answer.style.setProperty('--n', 1);
+    answer.dataset.thinking = '';
+
+    const [kind] = await Promise.all([kindOf(q), new Promise((r) => setTimeout(r, 550))]);
+    if (id !== seq) return;
+
+    const word = pick(kind, lastWord);
+    lastWord = word;
+    delete answer.dataset.thinking;
+    answer.style.setProperty('--n', word.length + 1);
+    answer.textContent = word + '.';
+    input.placeholder = 'Ask something else.';
+
+    if (!still.matches) answer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'linear' });
+  });
 </script>
 </body>
 </html>

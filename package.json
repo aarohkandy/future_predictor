@@ -2,14 +2,15 @@
   "name": "future_predictor",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node check.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ai": "^7.0.181"
-  }
+    "ai": "7.0.181"
+  },
+  "private": true,
+  "type": "module"
 }
