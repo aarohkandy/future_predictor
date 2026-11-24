@@ -39,4 +39,10 @@ for (const body of ['{}', '{"q":""}', '{"q":"   "}', '{"q":5}', 'null', JSON.str
 
 assert.equal((await POST(new Request('http://x/api/predict', { method: 'POST' }))).status, 400, 'no body');
 
+// A body that never finishes must be cut off by the read deadline, not hang the function.
+const stalled = new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('{"q":"h')); } });
+const t0 = Date.now();
+assert.equal((await POST(new Request('http://x/api/predict', { method: 'POST', body: stalled, duplex: 'half' }))).status, 400, 'stalled body');
+assert.ok(Date.now() - t0 < 2000, 'stalled body took too long');
+
 console.log('ok');
