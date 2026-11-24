@@ -7,70 +7,52 @@
 <meta name="description" content="Ask anything. Get one word.">
 <meta property="og:title" content="Future Predictor">
 <meta property="og:description" content="Ask anything. Get one word.">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#e7e5e4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23e7e5e4'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%231c1917'/%3E%3C/svg%3E">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#f0efec">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f0efec'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%231c1917'/%3E%3C/svg%3E">
 <style>
   :root {
-    color-scheme: light dark;
-    --page: #e7e5e4;
+    color-scheme: only light;
+    --marble: #f0efec;
     --ink: #1c1917;
-    --muted: #57534e;
-    --hairline: #78716c;
+    --muted: #6b6661;
     --pad: clamp(1.25rem, 6vw, 6rem);
-    --small: 0.9375rem;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --page: #1c1917;
-      --ink: #e7e5e4;
-      --muted: #a8a29e;
-      --hairline: #78716c;
-    }
   }
 
   * { box-sizing: border-box; }
 
   html {
-    background: var(--page);
+    background: var(--marble);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-kerning: normal;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
     margin: 0;
     min-height: 100svh;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto 1fr auto;
-    background: var(--page);
     padding:
-      max(clamp(1.25rem, 3.5vw, 2.5rem), env(safe-area-inset-top))
+      max(clamp(4.5rem, 20svh, 12rem), env(safe-area-inset-top))
       max(var(--pad), env(safe-area-inset-right))
-      max(clamp(1.25rem, 3.5vw, 2.5rem), env(safe-area-inset-bottom))
+      max(2rem, env(safe-area-inset-bottom))
       max(var(--pad), env(safe-area-inset-left));
   }
 
-  header, footer {
-    font-size: var(--small);
-    line-height: 1.4;
+  /* The slab: soft grey clouding with a few veins, drawn once by an SVG noise filter. */
+  .marble {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
   }
-  footer { color: var(--muted); }
-  p { margin: 0; }
-
-  main { padding: clamp(3.5rem, 15svh, 10rem) 0 2rem; }
 
   form {
-    display: flex;
-    align-items: baseline;
-    gap: 1.5rem;
-    border-bottom: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--muted);
     padding-bottom: calc(0.5rem + 1px);
   }
   form:focus-within {
@@ -79,9 +61,8 @@
   }
 
   input {
-    flex: 1;
-    width: 0;
-    min-width: 0;
+    display: block;
+    width: 100%;
     margin: 0;
     padding: 0;
     border: 0;
@@ -90,7 +71,6 @@
     color: inherit;
     font: inherit;
     font-size: clamp(1.5rem, 1rem + 2.2vw, 2.5rem);
-    font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 1.3;
     outline: none;
@@ -99,37 +79,14 @@
   }
   input::placeholder { color: var(--muted); opacity: 1; }
 
-  button {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--ink);
-    font: inherit;
-    font-size: var(--small);
-    font-weight: 500;
-    cursor: pointer;
-  }
-  form:has(input:placeholder-shown) button { color: var(--muted); cursor: default; }
-  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
-
   .slot {
     container-type: inline-size;
     margin-top: clamp(2.5rem, 9svh, 5.5rem);
   }
 
-  #asked {
-    max-width: 40ch;
-    color: var(--muted);
-    font-size: var(--small);
-    line-height: 1.4;
-    overflow-wrap: anywhere;
-  }
-
   #answer {
     --n: 3;
-    margin-top: 1rem;
-    margin-inline-start: -0.06em;
+    margin: 0 0 0 -0.06em;
     padding-bottom: 0.15em; /* room for descenders under the tight line-height */
     font-size: min(clamp(6rem, 36vw, 19rem), 36svh, calc(100cqi / (var(--n) * 0.58)));
     font-weight: 600;
@@ -137,7 +94,6 @@
     line-height: 0.85;
     white-space: nowrap;
   }
-  #answer:empty:not([data-thinking]) { height: 0; margin: 0; padding: 0; overflow: hidden; }
   #answer[data-thinking]::before {
     content: ".";
     content: "." / "";
@@ -160,42 +116,60 @@
 </style>
 </head>
 <body>
-<header>Future Predictor</header>
-<main>
-  <form id="ask" autocomplete="off">
-    <label class="vh" for="q">Your question</label>
-    <input id="q" name="q" type="text" maxlength="200" autocomplete="off" enterkeyhint="go" spellcheck="false" placeholder="Ask anything.">
-    <button type="submit">Ask</button>
-  </form>
-  <div class="slot">
-    <p id="asked"></p>
-    <p id="answer" aria-live="polite" aria-atomic="true"></p>
-  </div>
-</main>
-<footer>All predictions are final.</footer>
+<svg class="marble" aria-hidden="true" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <filter id="clouds" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0012 0.003" numOctaves="4" seed="7"/>
+      <feColorMatrix values="0 0 0 0 0.6  0 0 0 0 0.6  0 0 0 0 0.62  1.5 0 0 0 -0.62"/>
+    </filter>
+    <!-- Noise pushes the drawn lines around so they wander like veins instead of curves. -->
+    <filter id="wander" filterUnits="userSpaceOnUse" x="-300" y="-300" width="2200" height="1600" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0035 0.006" numOctaves="4" seed="4"/>
+      <feDisplacementMap in="SourceGraphic" scale="110" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.8"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="1000" fill="#f0efec"/>
+  <rect x="-700" y="-700" width="3000" height="2400" filter="url(#clouds)" opacity="0.4" transform="rotate(-27 800 500)"/>
+  <g filter="url(#wander)" fill="none" stroke="#6f6f75" stroke-linecap="round">
+    <path d="M-150 800 C 300 660 520 610 820 440 S 1350 190 1800 40" stroke-width="16" opacity="0.05"/>
+    <path d="M-150 800 C 300 660 520 610 820 440 S 1350 190 1800 40" stroke-width="1.7" opacity="0.5"/>
+    <path d="M-150 330 C 250 270 480 150 780 -80" stroke-width="1.1" opacity="0.38"/>
+    <path d="M480 1150 C 760 920 1050 810 1300 630 S 1600 480 1800 430" stroke-width="1.3" opacity="0.42"/>
+    <path d="M820 440 C 900 530 1010 570 1140 660" stroke-width="0.8" opacity="0.32"/>
+    <path d="M300 660 C 340 540 420 440 480 330" stroke-width="0.7" opacity="0.28"/>
+    <path d="M1300 630 C 1340 540 1420 470 1500 360" stroke-width="0.7" opacity="0.26"/>
+  </g>
+</svg>
+
+<form id="ask" autocomplete="off">
+  <label class="vh" for="q">Your question</label>
+  <input id="q" name="q" type="text" maxlength="200" autocomplete="off" enterkeyhint="go" spellcheck="false" placeholder="Ask anything.">
+</form>
+<div class="slot">
+  <p id="answer" aria-live="polite" aria-atomic="true"></p>
+</div>
+
 <script>
   const WORDS = ['Yes', 'No', 'Maybe', 'Lmao', 'Bad', 'Good'];
 
   const form = document.getElementById('ask');
   const input = document.getElementById('q');
-  const asked = document.getElementById('asked');
   const answer = document.getElementById('answer');
   const still = matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = matchMedia('(pointer: fine)').matches;
   let seq = 0;
   let lastWord;
 
-  const finePointer = matchMedia('(pointer: fine)').matches;
   if (finePointer) input.focus();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const q = input.value.trim();
-    if (!q) return;
+    if (!input.value.trim()) return;
     const id = ++seq;
 
     input.value = '';
     if (!finePointer) input.blur(); // drop the phone keyboard so it can't cover the answer
-    asked.textContent = q;
     answer.textContent = '';
     answer.style.setProperty('--n', 1);
     answer.dataset.thinking = '';
@@ -210,7 +184,6 @@
     delete answer.dataset.thinking;
     answer.style.setProperty('--n', word.length + 1);
     answer.textContent = word + '.';
-    input.placeholder = 'Ask something else.';
 
     if (!still.matches) answer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'linear' });
   });
