@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Future Predictor</title>
+<meta name="description" content="Ask anything. Get one word.">
+<style>
+  body { margin: 0; padding: 12vh 6vw; background: #e7e5e4; color: #1c1917;
+         font: 400 1.5rem/1.3 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  input { font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid #a8a29e;
+          width: 100%; padding: .4em 0; outline: none; }
+  output { display: block; margin-top: 8vh; font-weight: 600; font-size: 22vw; letter-spacing: -.045em; line-height: .9; }
+</style>
+</head>
+<body>
+<form>
+  <input name="q" placeholder="Ask anything." aria-label="Your question" maxlength="200" autocomplete="off" autofocus>
+</form>
+<output aria-live="polite"></output>
+<script>
+  const words = ['Yes', 'No', 'Maybe', 'Yeah', 'Nope', 'Never', 'Obviously', 'Doubtful', 'Probably', 'Funny'];
+  document.querySelector('form').onsubmit = e => {
+    e.preventDefault();
+    if (!e.target.q.value.trim()) return;
+    document.querySelector('output').textContent = words[Math.floor(Math.random() * words.length)] + '.';
+    e.target.q.value = '';
+  };
+</script>
+</body>
+</html>
