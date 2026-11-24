@@ -173,8 +173,8 @@
   </div>
 </main>
 <footer>All predictions are final.</footer>
-<script type="module">
-  import { POOLS, guessKind, pick } from './oracle.js';
+<script>
+  const WORDS = ['Yes', 'No', 'Maybe', 'Lmao', 'Bad', 'Good'];
 
   const form = document.getElementById('ask');
   const input = document.getElementById('q');
@@ -186,28 +186,6 @@
 
   const finePointer = matchMedia('(pointer: fine)').matches;
   if (finePointer) input.focus();
-
-  let inflight;
-  async function kindOf(q) {
-    inflight?.abort();
-    const ctl = inflight = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), 1200);
-    try {
-      const res = await fetch('/api/predict', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ q }),
-        signal: ctl.signal,
-      });
-      if (res.ok) {
-        const { kind } = await res.json();
-        if (typeof kind === 'string' && Object.prototype.hasOwnProperty.call(POOLS, kind)) return kind;
-      }
-    } catch {} finally {
-      clearTimeout(timer);
-    }
-    return guessKind(q);
-  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -222,10 +200,12 @@
     answer.style.setProperty('--n', 1);
     answer.dataset.thinking = '';
 
-    const [kind] = await Promise.all([kindOf(q), new Promise((r) => setTimeout(r, 550))]);
+    await new Promise((r) => setTimeout(r, 550)); // the pause is the joke's timing
     if (id !== seq) return;
 
-    const word = pick(kind, lastWord);
+    let word;
+    do word = WORDS[Math.floor(Math.random() * WORDS.length)];
+    while (word === lastWord);
     lastWord = word;
     delete answer.dataset.thinking;
     answer.style.setProperty('--n', word.length + 1);
