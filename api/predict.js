@@ -8,12 +8,17 @@ const bad = () => Response.json({ error: 'bad request' }, { status: 400 });
 async function readCapped(request, max) {
   if (Number(request.headers.get('content-length')) > max) throw new RangeError('body too large');
   const reader = request.body.getReader();
-  const timer = setTimeout(() => reader.cancel(), 1000); // a cancelled read ends early; the partial JSON then fails to parse
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    reader.cancel().catch(() => {});
+  }, 1000);
   const chunks = [];
   let size = 0;
   try {
     for (;;) {
       const { done, value } = await reader.read();
+      if (timedOut) throw new RangeError('body read timed out'); // never treat a cut-off body as complete
       if (done) return Buffer.concat(chunks).toString('utf8');
       size += value.byteLength;
       if (size > max) {
