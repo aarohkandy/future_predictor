@@ -34,7 +34,9 @@ for (const kind of [...ids, 'bogus']) {
 }
 
 const post = (body) => POST(new Request('http://x/api/predict', { method: 'POST', body }));
-for (const body of ['{}', '{"q":""}', '{"q":"   "}', '{"q":5}', 'null', JSON.stringify({ q: 'a'.repeat(201) }), '{not json'])
+for (const body of ['{}', '{"q":""}', '{"q":"   "}', '{"q":5}', 'null', JSON.stringify({ q: 'a'.repeat(201) }), '{not json', JSON.stringify({ q: 'hi', pad: 'x'.repeat(5000) })])
   assert.equal((await post(body)).status, 400, body);
+
+assert.equal((await POST(new Request('http://x/api/predict', { method: 'POST' }))).status, 400, 'no body');
 
 console.log('ok');

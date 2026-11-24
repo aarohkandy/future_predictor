@@ -3,11 +3,27 @@ import { KINDS } from '../oracle.js';
 
 const bad = () => Response.json({ error: 'bad request' }, { status: 400 });
 
+// Counts the bytes actually read, so the limit holds whatever Content-Length claims.
+async function readCapped(request, max) {
+  const reader = request.body.getReader();
+  const chunks = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return Buffer.concat(chunks).toString('utf8');
+    size += value.byteLength;
+    if (size > max) {
+      await reader.cancel();
+      throw new RangeError('body too large');
+    }
+    chunks.push(value);
+  }
+}
+
 export async function POST(request) {
-  if (Number(request.headers.get('content-length')) > 1024) return bad();
   let q;
   try {
-    q = (await request.json())?.q;
+    q = JSON.parse(await readCapped(request, 1024))?.q;
   } catch {
     return bad();
   }
